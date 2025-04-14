@@ -1,0 +1,90 @@
+import React, { useState } from 'react';
+
+function generateBoard(serverSeed, clientSeed, nonce) {
+  const crypto = require('crypto');
+  const input = `${serverSeed}:${clientSeed}:${nonce}`;
+  const hash = crypto.createHash('sha256').update(input).digest('hex');
+
+  let safeTiles = [];
+  let usedIndices = new Set();
+
+  let i = 0;
+  while (safeTiles.length < 22) {
+    const hexPair = hash.substring(i * 2, i * 2 + 2);
+    const decimal = parseInt(hexPair, 16);
+    const tile = decimal % 25;
+    if (!usedIndices.has(tile)) {
+      usedIndices.add(tile);
+      safeTiles.push(tile);
+    }
+    i++;
+    if (i * 2 >= hash.length) {
+      const extraHash = crypto.createHash('sha256').update(hash).digest('hex');
+      hash += extraHash;
+    }
+  }
+
+  return safeTiles;
+}
+
+export default function Predictor() {
+  const [serverSeed, setServerSeed] = useState('');
+  const [clientSeed, setClientSeed] = useState('');
+  const [nonce, setNonce] = useState('');
+  const [safeTiles, setSafeTiles] = useState([]);
+
+  const handlePredict = () => {
+    if (!serverSeed || !clientSeed || !nonce) return alert('Fill all fields');
+    const result = generateBoard(serverSeed, clientSeed, parseInt(nonce));
+    setSafeTiles(result);
+  };
+
+  return (
+    <div style={{ padding: 20, fontFamily: 'Arial' }}>
+      <h1>BC.Game Mines Predictor</h1>
+      <input
+        placeholder="Server Seed"
+        value={serverSeed}
+        onChange={(e) => setServerSeed(e.target.value)}
+        style={{ display: 'block', marginBottom: 10, width: '100%' }}
+      />
+      <input
+        placeholder="Client Seed"
+        value={clientSeed}
+        onChange={(e) => setClientSeed(e.target.value)}
+        style={{ display: 'block', marginBottom: 10, width: '100%' }}
+      />
+      <input
+        placeholder="Nonce"
+        type="number"
+        value={nonce}
+        onChange={(e) => setNonce(e.target.value)}
+        style={{ display: 'block', marginBottom: 10, width: '100%' }}
+      />
+      <button onClick={handlePredict}>Predict</button>
+
+      {safeTiles.length > 0 && (
+        <div style={{ marginTop: 20 }}>
+          <h3>Safe Tiles:</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 40px)', gap: 5 }}>
+            {Array.from({ length: 25 }, (_, i) => (
+              <div
+                key={i}
+                style={{
+                  width: 40,
+                  height: 40,
+                  backgroundColor: safeTiles.includes(i) ? 'lightgreen' : 'salmon',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                {i + 1}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}￼Enter
