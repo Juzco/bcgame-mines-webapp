@@ -1,3 +1,8 @@
 export default function Home() {
-  return <h1>BC.Game Mines Web App is Live!</h1>;
-    
+  return (
+    <div style={{ padding: '2rem', fontFamily: 'Arial' }}>
+      <h1>BC.Game Mines Predictor</h1>
+      <p>This web app will predict safe tiles using provably fair seeds.</p>
+    </div>
+  );
+  }
